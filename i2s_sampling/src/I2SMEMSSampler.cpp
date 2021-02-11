@@ -28,6 +28,7 @@ void I2SMEMSSampler::processI2SData(uint8_t *i2sData, size_t bytesRead)
     for (int i = 0; i < bytesRead / 4; i++)
     {
         // you may need to vary the >> 11 to fit your volume - ideally we'd have some kind of AGC here
-        addSample(samples[i] >> 11);
+        addSample(samples[4*i] >> 12);
+//        addSample(samples[i]);
     }
 }

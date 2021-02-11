@@ -1,14 +1,18 @@
 #include <Arduino.h>
+/*
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include "WiFiCredentials.h"
+*/
 #include "I2SMEMSSampler.h"
 #include "ADCSampler.h"
 
+/*
 WiFiClient *wifiClientADC = NULL;
 HTTPClient *httpClientADC = NULL;
 WiFiClient *wifiClientI2S = NULL;
 HTTPClient *httpClientI2S = NULL;
+*/
 ADCSampler *adcSampler = NULL;
 I2SSampler *i2sSampler = NULL;
 
@@ -46,11 +50,12 @@ i2s_config_t i2sMemsConfigBothChannels = {
 
 // i2s pins
 i2s_pin_config_t i2sPins = {
-    .bck_io_num = GPIO_NUM_32,
-    .ws_io_num = GPIO_NUM_25,
+    .bck_io_num = GPIO_NUM_14,
+    .ws_io_num = GPIO_NUM_15,
     .data_out_num = I2S_PIN_NO_CHANGE,
-    .data_in_num = GPIO_NUM_33};
+    .data_in_num = GPIO_NUM_39};
 
+/*
 // send data to a remote address
 void sendData(WiFiClient *wifiClient, HTTPClient *httpClient, const char *url, uint8_t *bytes, size_t count)
 {
@@ -61,6 +66,19 @@ void sendData(WiFiClient *wifiClient, HTTPClient *httpClient, const char *url, u
   httpClient->POST(bytes, count);
   httpClient->end();
   digitalWrite(2, LOW);
+}
+*/
+
+// send data to serial monitor
+void sendData(uint8_t *bytes, size_t count)
+{
+  //Serial.printf("Debut Buffer - %d", count);
+  //Serial.println(" -");
+  for (int i = 0 ; i < count/2; i++) {
+//    Serial.printf("%04x - ",bytes[2*i]);
+    Serial.println((uint16_t)bytes[2*i]);
+  }
+  //Serial.println("Fin Buffer");
 }
 
 // Task to write samples from ADC to our server
@@ -74,7 +92,8 @@ void adcWriterTask(void *param)
     uint32_t ulNotificationValue = ulTaskNotifyTake(pdTRUE, xMaxBlockTime);
     if (ulNotificationValue > 0)
     {
-      sendData(wifiClientADC, httpClientADC, ADC_SERVER_URL, (uint8_t *)sampler->getCapturedAudioBuffer(), sampler->getBufferSizeInBytes());
+//      sendData(wifiClientADC, httpClientADC, ADC_SERVER_URL, (uint8_t *)sampler->getCapturedAudioBuffer(), sampler->getBufferSizeInBytes());
+      sendData((uint8_t *)sampler->getCapturedAudioBuffer(), sampler->getBufferSizeInBytes());
     }
   }
 }
@@ -90,7 +109,8 @@ void i2sMemsWriterTask(void *param)
     uint32_t ulNotificationValue = ulTaskNotifyTake(pdTRUE, xMaxBlockTime);
     if (ulNotificationValue > 0)
     {
-      sendData(wifiClientI2S, httpClientI2S, I2S_SERVER_URL, (uint8_t *)sampler->getCapturedAudioBuffer(), sampler->getBufferSizeInBytes());
+//      sendData(wifiClientI2S, httpClientI2S, I2S_SERVER_URL, (uint8_t *)sampler->getCapturedAudioBuffer(), sampler->getBufferSizeInBytes());
+      sendData((uint8_t *)sampler->getCapturedAudioBuffer(), sampler->getBufferSizeInBytes());
     }
   }
 }
@@ -98,6 +118,7 @@ void i2sMemsWriterTask(void *param)
 void setup()
 {
   Serial.begin(115200);
+/*
   // launch WiFi
   WiFi.mode(WIFI_STA);
   WiFi.begin(SSID, PASSWORD);
@@ -107,7 +128,9 @@ void setup()
     delay(5000);
     ESP.restart();
   }
+*/
   Serial.println("Started up");
+/*
   // indicator LED
   pinMode(2, OUTPUT);
   // setup the HTTP Client
@@ -116,7 +139,7 @@ void setup()
 
   wifiClientI2S = new WiFiClient();
   httpClientI2S = new HTTPClient();
-
+*/
   // input from analog microphones such as the MAX9814 or MAX4466
   // internal analog to digital converter sampling using i2s
   // create our samplers
